@@ -1,0 +1,17 @@
+{
+  "uuid" : "vork-TestSubmission-1.0",
+  "toolId" : "testsubmission",
+  "name" : "Test Submission",
+  "description" : "A surface to test Github submissions.",
+  "sessionUuid" : "b6ef317c-1dc7-42c2-bf6a-c1f410eb1e33",
+  "executionSessionUuid" : "",
+  "skillUuids" : [ ],
+  "reflectionBindingUuids" : [ ],
+  "jobUuids" : [ ],
+  "groupId" : "vork",
+  "artifactId" : "TestSubmission",
+  "version" : "1.0",
+  "artifactStatus" : "SUBMITTED",
+  "createdAt" : 1786610764910,
+  "updatedAt" : 1786612436192
+}
