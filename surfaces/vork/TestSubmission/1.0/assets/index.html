@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spectrum Flashing Text</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <div class="container">
+    <h1 id="spectrum-text" class="spectrum-text">TEST</h1>
+  </div>
+
+  <div class="controls-panel">
+    <div class="control-group">
+      <label for="text-input">Display Text</label>
+      <input type="text" id="text-input" value="TEST" placeholder="TEST" maxlength="15">
+    </div>
+
+    <div class="control-group">
+      <label for="speed-slider">Flash Speed (s)</label>
+      <input type="range" id="speed-slider" min="0.2" max="10" step="0.1" value="4">
+    </div>
+
+    <button id="play-pause-btn" class="btn">Pause</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
