@@ -1,0 +1,12 @@
+{
+  "uuid" : "vork-TestSubmission-1.0",
+  "name" : "Test Submission",
+  "description" : "A surface to test Github submissions.",
+  "skillUuids" : [ ],
+  "reflectionBindingUuids" : [ ],
+  "jobUuids" : [ ],
+  "groupId" : "vork",
+  "artifactId" : "TestSubmission",
+  "version" : "1.0",
+  "artifactStatus" : "SUBMITTED"
+}
