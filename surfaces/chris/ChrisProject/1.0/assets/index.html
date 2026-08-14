@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Helios • Solar Position Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="relative min-h-screen text-slate-100 p-4 md:p-8">
+
+  <!-- Aesthetic Grid Overlay -->
+  <div class="grid-overlay"></div>
+
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header Block -->
+    <header class="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-slate-800">
+      <div>
+        <div class="flex items-center space-x-3">
+          <span class="text-3xl">☀️</span>
+          <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-amber-400 via-orange-500 to-yellow-300 bg-clip-text text-transparent">
+            HELIOS
+          </h1>
+        </div>
+        <p class="text-slate-400 text-sm mt-1">
+          Astronomical Real-Time Solar Sky Dome and Compass Visualization
+        </p>
+      </div>
+      <div class="mt-4 md:mt-0 flex flex-col items-end">
+        <span id="current-time-label" class="text-sm font-semibold text-slate-300 bg-slate-800/80 px-4 py-1.5 rounded-full border border-slate-700 shadow-md">
+          --
+        </span>
+      </div>
+    </header>
+
+    <!-- Upper Section: Location Control & Playback -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Preset & Custom Location Config -->
+      <div class="glass-panel p-6 flex flex-col justify-between space-y-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-200 mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            Location Configuration
+          </h2>
+          
+          <div class="space-y-4">
+            <!-- Preset Selector -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Preset City</label>
+              <select id="location-preset" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-lg px-3 py-2 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+                <option value="london" selected>London, United Kingdom</option>
+                <option value="tokyo">Tokyo, Japan</option>
+                <option value="sydney">Sydney, Australia</option>
+                <option value="cairo">Cairo, Egypt</option>
+                <option value="tromso">Tromsø, Norway (Polar Circle)</option>
+                <option value="mcmurdo">McMurdo Station, Antarctica</option>
+                <option value="quito">Quito, Ecuador (Equator)</option>
+                <option value="anchorage">Anchorage, Alaska</option>
+                <option value="custom">-- Custom Coordinates --</option>
+              </select>
+            </div>
+
+            <!-- Coordinate Grid -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Latitude (°N)</label>
+                <input id="latitude-input" type="number" step="0.0001" min="-90" max="90" value="51.5074"
+                  class="w-full bg-slate-900/90 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Longitude (°E)</label>
+                <input id="longitude-input" type="number" step="0.0001" min="-180" max="180" value="-0.1278"
+                  class="w-full bg-slate-900/90 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-2 pt-3">
+          <button id="btn-geoloc" class="flex-1 bg-slate-800/80 hover:bg-slate-700/90 text-xs font-bold uppercase tracking-wider text-slate-200 py-2.5 rounded-lg border border-slate-700 transition flex items-center justify-center gap-2">
+            📍 My Location
+          </button>
+        </div>
+      </div>
+
+      <!-- Time Travel Scrub Panel -->
+      <div class="glass-panel p-6 lg:col-span-2 flex flex-col justify-between space-y-4">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+              <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Time Travel & Simulation
+            </h2>
+            <div class="flex gap-2">
+              <button id="live-btn" class="text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-md transition duration-200 shadow-sm border border-transparent">
+                Live Time
+              </button>
+            </div>
+          </div>
+
+          <p class="text-slate-400 text-sm mb-4">
+            Scrub the timeline to travel to any hour of the selected day, or hit play to speed up the celestial cycle!
+          </p>
+
+          <div class="space-y-4">
+            <!-- Timeline slider -->
+            <div class="flex items-center space-x-4">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wider w-10">00:00</span>
+              <div class="flex-1">
+                <input id="time-slider" type="range" min="0" max="1439" value="720" class="w-full" />
+              </div>
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wider w-10 text-right">23:59</span>
+            </div>
+
+            <!-- Date Selector and Play Speed Button -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+              <div class="flex items-center space-x-2 w-full sm:w-auto">
+                <span class="text-xs font-bold uppercase text-slate-400">Date:</span>
+                <input id="date-selector" type="date" class="bg-slate-900/90 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-transparent flex-1 sm:flex-initial" />
+              </div>
+              
+              <!-- Timelapse control -->
+              <button id="play-btn" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold uppercase tracking-wider px-5 py-2.5 rounded-lg transition duration-150 flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Timelapse Simulation
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Middle Section: Visual Diagrams Layout -->
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">Celestial Visualization</h3>
+        <!-- Tab selector -->
+        <div class="flex bg-slate-900/90 p-1 rounded-lg border border-slate-800">
+          <button data-view="dual" class="tab-btn view-tab text-xs active">Dual View</button>
+          <button data-view="dome" class="tab-btn view-tab text-xs">Sky Dome View</button>
+          <button data-view="compass" class="tab-btn view-tab text-xs">Horizon Compass</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- 1. Front View Sky Dome Projection -->
+        <div id="view-container-dome" class="glass-panel p-6 flex flex-col items-center justify-center">
+          <div class="text-center mb-2 w-full">
+            <h4 class="text-sm font-bold tracking-wider text-slate-200 uppercase">3D Sky Dome Elevation</h4>
+            <p class="text-xs text-slate-500">Orthographic cross-section looking North. Left is West, Right is East.</p>
+          </div>
+          
+          <div class="relative w-full max-w-[420px] aspect-[400/220] flex items-center justify-center">
+            <svg viewBox="0 0 400 220" class="w-full h-full select-none">
+              <defs>
+                <!-- Sky background dynamic linear gradient -->
+                <linearGradient id="dome-sky-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop class="grad-stop-top" offset="0%" stop-color="#1e40af" />
+                  <stop class="grad-stop-bottom" offset="100%" stop-color="#38bdf8" />
+                </linearGradient>
+                
+                <!-- Underworld/Earth ground gradient -->
+                <linearGradient id="dome-ground-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop class="grad-stop-gtop" offset="0%" stop-color="#111827" />
+                  <stop class="grad-stop-gbottom" offset="100%" stop-color="#030712" />
+                </linearGradient>
+
+                <clipPath id="dome-sky-clip">
+                  <path d="M 50 180 A 150 150 0 0 1 350 180 Z" />
+                </clipPath>
+
+                <clipPath id="dome-ground-clip">
+                  <path d="M 50 180 A 150 150 0 0 0 350 180 Z" />
+                </clipPath>
+              </defs>
+
+              <!-- Underground Hemisphere Grid (Subterranean Path Area) -->
+              <g clip-path="url(#dome-ground-clip)">
+                <rect x="0" y="180" width="400" height="220" fill="url(#dome-ground-gradient)" />
+                <circle cx="200" cy="180" r="150" fill="none" stroke="rgba(255, 255, 255, 0.03)" stroke-width="1" />
+                <!-- Concentric underground rings -->
+                <circle cx="200" cy="180" r="100" fill="none" stroke="rgba(255, 255, 255, 0.02)" stroke-width="0.5" stroke-dasharray="2 2" />
+                <circle cx="200" cy="180" r="50" fill="none" stroke="rgba(255, 255, 255, 0.02)" stroke-width="0.5" stroke-dasharray="2 2" />
+              </g>
+
+              <!-- Sky Hemisphere Area -->
+              <g clip-path="url(#dome-sky-clip)">
+                <!-- Skybox color -->
+                <rect x="0" y="0" width="400" height="180" fill="url(#dome-sky-gradient)" />
+                
+                <!-- Dynamically populated stars (faded out during daylight) -->
+                <g id="stars-group" style="transition: opacity 1s; opacity: 0;"></g>
+
+                <!-- Elevation Grid Curves -->
+                <!-- 30° elevation line -->
+                <path d="M 70 180 A 130 130 0 0 1 330 180" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" stroke-dasharray="4 4" />
+                <!-- 60° elevation line -->
+                <path d="M 125 180 A 75 75 0 0 1 275 180" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" stroke-dasharray="4 4" />
+
+                <!-- Sky center line/Zenith axis -->
+                <line x1="200" y1="180" x2="200" y2="30" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1" stroke-dasharray="2 2" />
+              </g>
+
+              <!-- Sky Dome Boundary -->
+              <path d="M 50 180 A 150 150 0 0 1 350 180" fill="none" stroke="rgba(255, 255, 255, 0.2)" stroke-width="1.5" />
+              <!-- Horizon line -->
+              <line x1="30" y1="180" x2="370" y2="180" stroke="rgba(255, 255, 255, 0.3)" stroke-width="2" />
+
+              <!-- Day & Night Sun Paths -->
+              <!-- Draw solar paths (clipped separately to sky and underground for rendering style) -->
+              <g clip-path="url(#dome-sky-clip)">
+                <path id="dome-sun-path" d="" fill="none" stroke="#facc15" stroke-width="2" stroke-dasharray="1 0" />
+              </g>
+              <g clip-path="url(#dome-ground-clip)">
+                <path d="" fill="none" stroke="#334155" stroke-width="1.5" stroke-dasharray="4 4" />
+                <!-- We duplicate the path inside the script and apply underground styling -->
+              </g>
+
+              <!-- Cardinal markers on the horizon -->
+              <text x="358" y="195" class="compass-label font-bold text-xs" fill="#94a3b8">EAST (R)</text>
+              <text x="42" y="195" class="compass-label font-bold text-xs" fill="#94a3b8">WEST (L)</text>
+              <text x="200" y="22" class="compass-label font-bold text-xs" fill="#64748b">ZENITH (90°)</text>
+
+              <!-- Measurement Overlay indicators (Angle lines) -->
+              <!-- Altitude Line -->
+              <line id="dome-indicator-alt" x1="200" y1="180" x2="200" y2="180" stroke="rgba(250, 204, 21, 0.3)" stroke-width="1.5" stroke-dasharray="3 3" />
+              <!-- Azimuth projected ground line -->
+              <line id="dome-indicator-az" x1="200" y1="180" x2="200" y2="180" stroke="rgba(148, 163, 184, 0.3)" stroke-width="1.5" stroke-dasharray="2 2" />
+
+              <!-- The Sun -->
+              <circle id="dome-sun-node" cx="200" cy="180" r="10" fill="#fbbf24" stroke="#ffffff" stroke-width="2" class="transition-all-500 cursor-pointer" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- 2. Compass Radar View -->
+        <div id="view-container-compass" class="glass-panel p-6 flex flex-col items-center justify-center">
+          <div class="text-center mb-2 w-full">
+            <h4 class="text-sm font-bold tracking-wider text-slate-200 uppercase">Horizontal Compass Radar</h4>
+            <p class="text-xs text-slate-500">Azimuth projection looking down. Center is 90° Zenith, outer ring is Horizon.</p>
+          </div>
+
+          <div class="relative w-full max-w-[320px] aspect-square flex items-center justify-center">
+            <svg viewBox="0 0 300 300" class="w-full h-full select-none">
+              <!-- Radial Grid Rings -->
+              <circle cx="150" cy="150" r="120" class="compass-grid-circle" /> <!-- Horizon -->
+              <circle cx="150" cy="150" r="80" class="compass-grid-circle-sub" /> <!-- 30° Alt -->
+              <circle cx="150" cy="150" r="40" class="compass-grid-circle-sub" /> <!-- 60° Alt -->
+              <circle cx="150" cy="150" r="2" class="compass-grid-circle" /> <!-- Zenith -->
+
+              <!-- Axis lines (Crosshair) -->
+              <line x1="150" y1="15" x2="150" y2="285" class="compass-axis" />
+              <line x1="15" y1="150" x2="285" y2="150" class="compass-axis" />
+
+              <!-- 45 Degree Diagonal Axes -->
+              <line x1="55" y1="55" x2="245" y2="245" stroke="rgba(255,255,255,0.02)" stroke-width="1" stroke-dasharray="3 3" />
+              <line x1="55" y1="245" x2="245" y2="55" stroke="rgba(255,255,255,0.02)" stroke-width="1" stroke-dasharray="3 3" />
+
+              <!-- Compass Cardinal Labels -->
+              <text x="150" y="24" class="compass-label compass-cardinal-major">N</text>
+              <text x="276" y="150" class="compass-label compass-cardinal-major">E</text>
+              <text x="150" y="276" class="compass-label compass-cardinal-major">S</text>
+              <text x="24" y="150" class="compass-label compass-cardinal-major">W</text>
+
+              <!-- Radial Angle Marks -->
+              <text x="150" y="105" class="compass-label text-[9px] fill-slate-600 font-bold" text-anchor="middle">60°</text>
+              <text x="150" y="65" class="compass-label text-[9px] fill-slate-600 font-bold" text-anchor="middle">30°</text>
+
+              <!-- Solar Compass Path -->
+              <path id="compass-sun-path" d="" fill="none" stroke="rgba(245, 158, 11, 0.4)" stroke-width="2.5" />
+
+              <!-- Ray line pointing to current azimuth -->
+              <line id="compass-sun-ray-line" x1="150" y1="150" x2="150" y2="150" stroke="rgba(245, 158, 11, 0.2)" stroke-width="1.5" stroke-dasharray="2 2" />
+
+              <!-- Current Sun Marker on Radar -->
+              <circle id="compass-sun-node" cx="150" cy="150" r="8" fill="#fbbf24" stroke="#ffffff" stroke-width="1.5" class="transition-all-500 cursor-pointer" />
+            </svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bottom Section: Detailed Solar Metrics Dashboard -->
+    <div class="glass-panel p-6">
+      <h3 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+        Coordinates & Solar Analysis
+      </h3>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        
+        <!-- Metric 1: Location -->
+        <div class="p-4 bg-slate-900/40 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Location</span>
+            <div id="location-display-name" class="text-base font-bold text-slate-200 mt-1 truncate">London, UK</div>
+          </div>
+          <div id="coords-display-text" class="mono text-xs text-slate-500 mt-2 truncate">Lat: --, Lng: --</div>
+        </div>
+
+        <!-- Metric 2: Sun Position -->
+        <div class="p-4 bg-slate-900/40 rounded-xl border border-slate-800/80">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Altitude (Height)</span>
+          <div id="val-altitude" class="mono text-2xl font-extrabold text-amber-400 mt-1">--</div>
+          <div id="val-sun-status" class="text-xs text-slate-400 mt-2 truncate">Determining status...</div>
+        </div>
+
+        <!-- Metric 3: Compass Azimuth -->
+        <div class="p-4 bg-slate-900/40 rounded-xl border border-slate-800/80">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Azimuth (Heading)</span>
+          <div id="val-azimuth" class="mono text-2xl font-extrabold text-amber-400 mt-1">--</div>
+          <div class="text-xs text-slate-500 mt-2">Measured clockwise from North</div>
+        </div>
+
+        <!-- Metric 4: Sunrise / Sunset -->
+        <div class="p-4 bg-slate-900/40 rounded-xl border border-slate-800/80">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Daylight Boundaries</span>
+          <div class="grid grid-cols-2 gap-2 mt-1">
+            <div>
+              <span class="text-[9px] text-slate-500 block">SUNRISE</span>
+              <span id="val-sunrise" class="mono text-sm font-bold text-slate-300">--:--</span>
+            </div>
+            <div>
+              <span class="text-[9px] text-slate-500 block">SUNSET</span>
+              <span id="val-sunset" class="mono text-sm font-bold text-slate-300">--:--</span>
+            </div>
+          </div>
+          <div class="text-xs text-slate-500 mt-2 flex justify-between">
+            <span>Length:</span>
+            <span id="val-daylength" class="mono text-slate-300 font-semibold">--h --m</span>
+          </div>
+        </div>
+
+        <!-- Metric 5: Solar Noon -->
+        <div class="p-4 bg-slate-900/40 rounded-xl border border-slate-800/80">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Solar Noon / Transit</span>
+          <div id="val-transit" class="mono text-xl font-bold text-slate-300 mt-1">--:--</div>
+          <span class="text-xs text-slate-500 mt-2 block">Sun crosses local meridian</span>
+        </div>
+
+        <!-- Metric 6: Solar Max Altitude -->
+        <div class="p-4 bg-slate-900/40 rounded-xl border border-slate-800/80">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Max Altitude Today</span>
+          <div id="val-max-altitude" class="mono text-xl font-bold text-slate-300 mt-1">--</div>
+          <span class="text-xs text-slate-500 mt-2 block">Peak solar angle of the day</span>
+        </div>
+
+        <!-- Metric 7: Declination -->
+        <div class="p-4 bg-slate-900/40 rounded-xl border border-slate-800/80">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Solar Declination</span>
+          <div id="val-declination" class="mono text-xl font-bold text-slate-300 mt-1">--</div>
+          <span class="text-xs text-slate-500 mt-2 block">Angle relative to equatorial plane</span>
+        </div>
+
+        <!-- Metric 8: Atmospheric State -->
+        <div class="p-4 bg-slate-900/40 rounded-xl border border-slate-800/80 flex flex-col justify-between">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Calculation Integrity</span>
+            <div class="text-xs font-semibold text-emerald-400 mt-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+              </svg>
+              High Accuracy Offline
+            </div>
+          </div>
+          <div class="text-[10px] text-slate-500 mt-2">Calculated locally dynamically</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Reflections library if required -->
+  <script src="/surface/runtime/v1/reflections.js"></script>
+  <!-- Main Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
