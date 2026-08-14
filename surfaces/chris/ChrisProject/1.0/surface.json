@@ -1,0 +1,12 @@
+{
+  "uuid" : "chris-ChrisProject-1.0",
+  "name" : "Chris Project",
+  "description" : "",
+  "skillUuids" : [ ],
+  "reflectionBindingUuids" : [ ],
+  "jobUuids" : [ ],
+  "groupId" : "chris",
+  "artifactId" : "ChrisProject",
+  "version" : "1.0",
+  "artifactStatus" : "SUBMITTED"
+}
